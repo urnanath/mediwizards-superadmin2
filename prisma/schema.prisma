@@ -1,0 +1,92 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model SuperAdmin {
+  id           String   @id @default(uuid())
+  superadminId String   @default(uuid())
+  email        String   @unique
+  password     String
+  createdAt    DateTime @default(now())
+  profilePic   String?
+
+  @@map("superadmin")
+}
+
+model Hospital {
+  id                     String                   @id @default(uuid())
+  hospitalId             String                   @default(uuid())
+  email                  String                   @unique
+  password               String
+  registeredAt           DateTime                 @default(now())
+  isVerified             Boolean @default(false)
+  verifiedAt             DateTime?
+  profilePic             String?
+  HospitalDoctorRelation HospitalDoctorRelation[]
+
+  @@map("hospital")
+}
+
+model Clinic {
+  id              String                 @id @default(uuid())
+  clinicId        String                 @default(uuid())
+  email           String                 @unique
+  password        String
+  onboardedAt     DateTime               @default(now())
+  isVerified      Boolean @default(false)
+  verifiedAt      DateTime?
+  profilePic      String?
+  ClinicDoctorMap ClinicDoctorRelation[]
+
+  @@map("clinic")
+}
+
+model Doctor {
+  id                String                   @id @default(uuid())
+  doctorId          String                   @default(uuid())
+  regId             String                   @unique
+  email             String                   @unique
+  password          String
+  HospitalDoctorMap HospitalDoctorRelation[]
+  ClinicDoctorMap   ClinicDoctorRelation[]
+
+  @@map("doctor")
+}
+
+model HospitalDoctorRelation {
+  hospital   Hospital @relation(fields: [hospitalId], references: [id])
+  hospitalId String
+
+  doctor   Doctor @relation(fields: [doctorId], references: [id])
+  doctorId String
+
+  isApproved Boolean @default(false)
+
+  slots String[]
+
+  @@id([hospitalId, doctorId])
+  @@map("hospital_doctor_relation")
+}
+
+model ClinicDoctorRelation {
+  clinic   Clinic @relation(fields: [clinicId], references: [id])
+  clinicId String
+
+  doctor   Doctor @relation(fields: [doctorId], references: [id])
+  doctorId String
+
+  isApproved Boolean @default(false)
+
+  slots String[]
+
+  @@id([clinicId, doctorId])
+  @@map("clinic_doctor_relation")
+}
